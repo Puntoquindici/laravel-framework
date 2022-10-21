@@ -223,7 +223,7 @@ class Worker
                 );
             }
 
-            $this->kill(static::EXIT_ERROR);
+            $this->handleJobException($job->getConnectionName(), $job, $options, new JobTimeoutException("Job timeout reached"));
         });
 
         pcntl_alarm(
@@ -473,7 +473,11 @@ class Worker
             }
         }
 
-        throw $e;
+        if($e instanceof JobTimeoutException) {
+            $this->kill(static::EXIT_ERROR);
+        } else {
+            throw $e;
+        }
     }
 
     /**
